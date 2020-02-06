@@ -21,3 +21,5 @@ st.write("- Visualizing Data on a Map")
 
 if st.button("Show School Data"):
     st.write(nr.df)
+
+st.write("### Using Google Maps API to search restaurants near your schools:")
