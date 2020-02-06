@@ -37,8 +37,6 @@ if st.button("Search"):
     elif op_time == 'False':
         op_val = False
 
-if len(query) == 0:
-    query = ""
 nr_results = nr.search_results(query=query, radius=radius, now=op_val)
 st.write("Google Places API Search Completed")
 
@@ -47,23 +45,34 @@ if st.button("Sample Result: "):
 
 st.write("### Get All Search Results: ")
 
-
 count = 0
 school_names = nr.df['school_name'].tolist()
 result_dict = {}
-if st.button("Collect All Results: "):
-    while count < len(nr_results):
-        result = nr_results[count]
-        sleep(3)
-        result2 = nr.gmaps.places(query=query, page_token=result['next_page_token'])
-        sleep(3)
-        result3 = nr.gmaps.places(query=query, page_token=result2['next_page_token'])
-        result_dict[school_names[count]] = [result, result2, result3]
-        count += 1
+while count < len(nr_results):
+    result = nr_results[count]
+    sleep(3)
+    result2 = nr.gmaps.places(query=query, page_token=result['next_page_token'])
+    sleep(3)
+    result3 = nr.gmaps.places(query=query, page_token=result2['next_page_token'])
+    result_dict[school_names[count]] = [result, result2, result3]
+    count += 1
 
 nr_frame_dict = nr.frame_process(result_dict)
 
 school_option = st.radio("Select your high school: ", options=nr.df['school_name'])
 
-if st.button("View Merged Result: "):
+if st.button("View Full Search Result: "):
     st.write(nr_frame_dict[school_option])
+
+st.write("### Getting Haversine and Google Distances: ")
+unit_measure = st.radio("Which unit metric do you want to calculate Haversine distance with?: ", options=['m', 'km', 'mi'])
+haversine_distance = nr.haversine_distance(nr_frame_dict, unit_measure)
+st.write("Haversine Distance Completed.")
+transport = st.radio("What type of transportation do you want the distance for?: ", options=['walking', 'bicycling', 'transit', 'driving'])
+google_distance = nr.google_distance(nr_frame_dict, transporation_mode=transport)
+st.write("Google Distance Matrix API Completed.")
+
+final_results = nr.merge_frames(nr_frame_dict, haversine_distance, google_distance)
+
+if st.button("Final Results"):
+    st.write(final_results[school_option])
