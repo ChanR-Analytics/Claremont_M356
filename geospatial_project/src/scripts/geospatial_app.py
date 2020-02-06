@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-from geospatial_project.src.scripts.nearest_restaurants_schools_oop import nearest_restaurants
+from nearest_restaurants_schools_oop import nearest_restaurants
 from os import getcwd, listdir
 
 # Data Path
