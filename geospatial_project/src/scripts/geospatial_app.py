@@ -65,8 +65,7 @@ if st.button("View Full Search Result: "):
     st.write(nr_frame_dict[school_option])
 
 st.write("### Getting Haversine and Google Distances: ")
-unit_measure = st.radio("Which unit metric do you want to calculate Haversine distance with?: ", options=['m', 'km', 'mi'])
-haversine_distance = nr.haversine_distance(nr_frame_dict, unit_measure)
+haversine_distance = nr.haversine_distance(nr_frame_dict, 'mi')
 st.write("Haversine Distance Completed.")
 transport = st.radio("What type of transportation do you want the distance for?: ", options=['walking', 'bicycling', 'transit', 'driving'])
 google_distance = nr.google_distance(nr_frame_dict, transporation_mode=transport)
@@ -76,3 +75,6 @@ final_results = nr.merge_frames(nr_frame_dict, haversine_distance, google_distan
 
 if st.button("Final Results"):
     st.write(final_results[school_option])
+
+st.write("### Visualizing The Results on a Map: ")
+st.map(final_results[school_option]) 

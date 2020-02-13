@@ -63,7 +63,7 @@ class nearest_restaurants:
                     total_user_ratings.append(user_rating)
                     ratings.append(rating)
                     price_levels.append(price_level)
-                format_result_dict[school] = {'names': names, 'latitudes': latitudes, 'longitudes': longitudes, 'total_user_ratings': total_user_ratings, 'ratings': ratings, 'price_levels': price_levels}
+                format_result_dict[school] = {'names': names, 'latitude': latitudes, 'longitude': longitudes, 'total_user_ratings': total_user_ratings, 'ratings': ratings, 'price_levels': price_levels}
 
         format_result_df_dict = {school: pd.DataFrame.from_dict(format_result_dict[school]) for school in format_result_dict.keys()}
         return format_result_df_dict
@@ -77,8 +77,8 @@ class nearest_restaurants:
 
         for school in list(school_results_dict.keys()):
             distance_list = []
-            restaurant_lat = school_results_dict[school]['latitudes'].tolist()
-            restaurant_long = school_results_dict[school]['longitudes'].tolist()
+            restaurant_lat = school_results_dict[school]['latitude'].tolist()
+            restaurant_long = school_results_dict[school]['longitude'].tolist()
             restaurant_coordinates = list(zip(restaurant_lat, restaurant_long))
 
             for restaurant_coordinate in restaurant_coordinates:
@@ -96,10 +96,10 @@ class nearest_restaurants:
         result_dict = {}
 
         for school in list(frame_dict.keys()):
-            latitudes = frame_dict[school]['latitudes'].tolist()
-            longitudes = frame_dict[school]['longitudes'].tolist()
+            latitudes = frame_dict[school]['latitude'].tolist()
+            longitudes = frame_dict[school]['longitude'].tolist()
             restaurant_coordinates = list(zip(latitudes, longitudes))
-            result = self.gmaps.distance_matrix(origins=school_coordinate_dict[school], destinations=restaurant_coordinates, mode=transporation_mode)
+            result = self.gmaps.distance_matrix(origins=school_coordinate_dict[school], destinations=restaurant_coordinates, mode=transporation_mode, units='imperial')
             result_dict[school] = result
 
         frame_dict = {}
