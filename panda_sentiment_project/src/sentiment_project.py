@@ -9,15 +9,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, matthews_corrcoef
 from xgboost import XGBClassifier
 from scikitplot.metrics import plot_confusion_matrix
+from hate_speech_project.src.python.hate_speech_oop import tokenize, HatebaseTwitter
+
+
+hb_path = getcwd() + "/hate_speech_project/data/HatebaseTwitter"
+hb = HatebaseTwitter(hb_path)
+features = hb.features()
+
 
 df = pd.read_csv("https://query.data.world/s/33zqxxshjwehd5xoktqpxyiuyqzedm")
 df.drop("author", axis=1, inplace=True)
 df.head()
-tweet = "Hello, I am sleepy."
-tweet = tokenize(tweet)
-tweet
-#tokens = re.split("[^a-zA-Z]*", tweet.lower())
-tokens = [stemmer.stem(t) for t in tweet.split()]
+
+print(tokenize(hb.df['tweet'].tolist()[0]))  
+
 # Visualizing the Sentiments
 sentiment = df['sentiment']
 x = sentiment.value_counts()
