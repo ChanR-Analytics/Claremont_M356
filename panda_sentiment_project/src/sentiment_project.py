@@ -64,7 +64,7 @@ nltk.download('punkt')
 nltk.download('wordnet')
 
 ## Establishing Lemmatizer
-lem = WordNetLemmatizer() 
+lem = WordNetLemmatizer()
 
 ## Removing Punctuation, Preprocessing, Lemmatizing and Tokenizing Tweets
 def tokenize(tweet):
@@ -73,7 +73,7 @@ def tokenize(tweet):
     # Removing Punctuation
     word_list = tweet.split()
     table = str.maketrans('', '', punctuation)
-    stripped_word_list = [word.translate(table) for word in word_list]
+    stripped_word_list = [word.lower().translate(table) for word in word_list]
     # Lemmatizing Each Word
     lem_word_list = [lem.lemmatize(word) for word in stripped_word_list]
     # Tokenizing the Sentence
