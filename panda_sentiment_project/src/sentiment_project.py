@@ -5,8 +5,10 @@ import seaborn as sns
 import nltk
 import re
 from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.stem import WordNetLemmatizer
 from os import getcwd, listdir
 from string import punctuation
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, matthews_corrcoef
@@ -56,8 +58,28 @@ labels = x.values
 plt.savefig(f"{img_path}/sentiment_counts.png")
 
 # Preparing the NLP Features
-nltk.download('punkt')
 
-# Cleaning, Preprocessing, and Tokenizing Tweets
-sample_sentence = "Hello, my name is Tam."
-word_tokenize(sample_sentence)
+## If punkt and wordnet already installed, feel to comment out lines 61 and 62.
+nltk.download('punkt')
+nltk.download('wordnet')
+
+## Establishing Lemmatizer
+lem = WordNetLemmatizer() 
+
+## Removing Punctuation, Preprocessing, Lemmatizing and Tokenizing Tweets
+def tokenize(tweet):
+    # Preprocessing Text
+    tweet = preprocess(tweet)
+    # Removing Punctuation
+    word_list = tweet.split()
+    table = str.maketrans('', '', punctuation)
+    stripped_word_list = [word.translate(table) for word in word_list]
+    # Lemmatizing Each Word
+    lem_word_list = [lem.lemmatize(word) for word in stripped_word_list]
+    # Tokenizing the Sentence
+    sentence = " ".join(lem_word_list)
+    return " ".join(sent_tokenize(sentence))
+
+sample_sentence = "Hello, my name is Rishov!"
+
+tokenize(sample_sentence)
