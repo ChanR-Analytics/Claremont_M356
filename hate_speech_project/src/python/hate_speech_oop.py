@@ -312,6 +312,6 @@ class HatebaseTwitter():
         print(f"Matthew's Correlation Coefficient is {matthews_corrcoef(Y_test, Y_pred)}")
 
         # Plots of Confusion Matrix and ROC Curve
-        plot_confusion_matrix(Y_test, Y_pred, figsize=(10,10)) 
+        plot_confusion_matrix(Y_test, Y_pred, figsize=(10,10))
 
         return model
