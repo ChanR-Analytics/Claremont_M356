@@ -5,7 +5,7 @@ import seaborn as sns
 import nltk
 import re
 from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.stem import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
 from nltk.corpus import stopwords, wordnet
 from nltk import pos_tag
 from os import getcwd, listdir
@@ -71,6 +71,11 @@ nltk.download('wordnet')
 ## Establishing Lemmatizer
 lem = WordNetLemmatizer()
 
+
+## Establishing Snowball Stemmer
+snowball = SnowballStemmer('english')
+
+
 ## Treebank to WordNet Tag Translator Function Borrowed from Suzana on StackOverFlow
 def get_wordnet_pos(treebank_tag):
 
@@ -103,10 +108,10 @@ tagged = [get_wordnet_pos(tag) for tag in tagged]
 tagged
 lem_word_list = [lem.lemmatize(word, tagged[i]) for i, word in enumerate(stripped_sentence.split(" "))]
 lem_word_list
-
+stripped_sentence.split(" ")
 
 ## Removing Punctuation, Preprocessing, Lemmatizing and Tokenizing Tweets
-def tokenize(tweet):
+def lem_tokenize(tweet):
     # Preprocessing Text
     tweet = preprocess(tweet)
     # Removing Punctuation
@@ -122,32 +127,50 @@ def tokenize(tweet):
     # Returning Final String
     return " ".join(lem_word_list)
 
+def snow_tokenize(tweet):
+    # Preprocessing Text
+    tweet = preprocess(tweet)
+    # Removing punctuation
+    table = str.maketrans('', '', punctuation)
+    stripped_sentence = [word.lower().translate(table) for word in tweet.split()]
+    stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
+    # Tokenizing the Words in the Sentence
+    tokenized = word_tokenize(stripped_sentence)
+    # Stemming Each Word in the Sentence
+    stemmed_words = [snowball.stem(word) for word in tokenized]
+    return " ".join(stemmed_words)
+
 sample_sentence = "Playing is a sport that I played since the beginning of the word play."
 
 tokenize(sample_sentence)
+snow_tokenize(sample_sentence)
 
 ## Filtering Data Frame for Happy and Sad Sentiments Only
 new_df = df[(df['sentiment'].str.contains('happiness')) | (df['sentiment'].str.contains('sadness'))]
 new_df.columns = ['id', 'sentiment', 'tweet']
 tweet_list = new_df['tweet'].tolist()
-tweet_list_one = tweet_list[:20]
-tweet_list_two = tweet_list[21:24]
-mystery_cases = [tweet_list[20], tweet_list[25]]
-mystery_cases
 
-# Preprocessing Text
-tweet = preprocess(mystery_cases[0])
-# Removing Punctuation
-table = str.maketrans('', '', punctuation)
-stripped_sentence = [word.lower().translate(table) for word in tweet.split()]
-stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
-# Tokenizing the Words in the Sentence and Part of Speech Tagging
-tagged = pos_tag(word_tokenize(stripped_sentence))
-tagged = [i[1] for i in tagged]
-tagged
-tagged = [get_wordnet_pos(tag) for tag in tagged]
-len(tagged)
-len(stripped_sentence.split(" "))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Leaving the below code for Lemmatizing Purposes in the Future
+
+# Function to remove mystery cases where wordnet POS tag and stripped sentence lengths don't match
 
 def mystery_cases(tweet_list: list) -> list:
     # Empty List to Store All the Mystery Cases
@@ -162,30 +185,19 @@ def mystery_cases(tweet_list: list) -> list:
         if len(tagged) != len(stripped_tweet.split()):
             mys_cases.append((i, tweet))
     return mys_cases
-mys_cases = mystery_cases(new_df['tweet'].tolist())
+
+# Storing the mystery cases in a list and removing them from the data frame
+mys_cases = mystery_cases(tweet_list)
 type(mys_cases)
 len(mys_cases)
 mys_cases
 new_df.shape[0] - len(mys_cases)
 mys_indices = [i[0] for i in mys_cases]
+clean_df = new_df.copy()
+clean_df.dropna(inplace=True)
+clean_df.shape
+clean_df['sentiment'].value_counts()
 
-## Lemmatize Versus Normal Sentence Polarity Experiment
-
-analyzer = SentimentIntensityAnalyzer()
-
-example_tweet = new_df['tweet'].T[6]
-example_tweet
-
-def punctuation_process(text):
-    processed_text = preprocess(text)
-    clean_text = [word.lower().translate(table) for word in processed_text.split()]
-    return " ".join(clean_text)
-
-norm_text = punctuation_process(example_tweet)
-tokenized_text = tokenize(example_tweet)
-
-norm_results = analyzer.polarity_scores(norm_text)
-tokenized_results = analyzer.polarity_scores(tokenized_text)
-
-norm_results
-tokenized_results
+mystery_cases = clean_df.iloc[mys_indices]
+final_df = clean_df[clean_df['id'].isin(mystery_cases['id']) == False]
+final_df.shape
