@@ -142,7 +142,9 @@ def snow_tokenize(tweet):
 
 sample_sentence = "Playing is a sport that I played since the beginning of the word play."
 
-tokenize(sample_sentence)
+# Comparing Lemmatizing to Snowball Stemming
+
+lem_tokenize(sample_sentence)
 snow_tokenize(sample_sentence)
 
 ## Filtering Data Frame for Happy and Sad Sentiments Only
@@ -150,13 +152,12 @@ new_df = df[(df['sentiment'].str.contains('happiness')) | (df['sentiment'].str.c
 new_df.columns = ['id', 'sentiment', 'tweet']
 tweet_list = new_df['tweet'].tolist()
 
+snowball_tweets = [snow_tokenize(tweet) for tweet in new_df['tweet'].tolist()]
+clean_df = new_df.copy()
 
+clean_df['snowball_stemmed_tweets'] = snowball_tweets
 
-
-
-
-
-
+clean_df.head()
 
 
 
