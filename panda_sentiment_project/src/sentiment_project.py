@@ -80,6 +80,6 @@ def tokenize(tweet):
     sentence = " ".join(lem_word_list)
     return " ".join(sent_tokenize(sentence))
 
-sample_sentence = "Hello, my name is Rishov!"
+sample_sentence = "Playing is a sport that I played since the beginning of the word play."
 
 tokenize(sample_sentence)
