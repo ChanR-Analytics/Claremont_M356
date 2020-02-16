@@ -1,6 +1,6 @@
 import requests
 import json
-from os import getcwd, chdir, system, popen
+from os import getcwd, listdir, system
 data_path = getcwd() + "/e_sports_data_analysis/data"
 url = "https://api.pandascore.co/lol/matches"
 api_token = input("Input your API token: ")
@@ -18,11 +18,14 @@ page_dict.keys()
 
 ex_response = page_dict['response_1']
 
-with open(f"{data_path}/new_example.json", "w") as my_file:
-    parsed = json.dumps(ex_response, indent=4, sort_keys=True)
-    my_file.write(parsed)
-
-
 for i in range(30):
     system(f"touch {json_path}/league_match_{i+1}.json")
-    
+
+league_files = listdir(json_path)
+
+page_values = list(page_dict.values())
+
+for i, file in enumerate(league_files):
+    opened_file = open(f"{json_path}/{file}", "w")
+    parsed = json.dumps(page_values[i], indent=4, sort_keys=True)
+    opened_file.write(parsed)
