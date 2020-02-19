@@ -2,7 +2,7 @@ import requests
 import json
 from os import getcwd, listdir, system
 data_path = getcwd() + "/e_sports_data_analysis/data"
-url = "https://api.pandascore.co/lol/matches"
+url = input("Type in the Pandascore API endpoint you want to query: ")
 api_token = input("Input your API token: ")
 json_path = data_path + "/league_matches"
 page_dict = {}
