@@ -71,7 +71,6 @@ nltk.download('wordnet')
 ## Establishing Lemmatizer
 lem = WordNetLemmatizer()
 
-
 ## Establishing Snowball Stemmer
 snowball = SnowballStemmer('english')
 
@@ -90,27 +89,16 @@ def get_wordnet_pos(treebank_tag):
     else:
         return wordnet.NOUN
 
-# Getting Final, Lemmatized Sentence
-new_sentence = "He plays the guitar very well."
-preprocessed_sentence = preprocess(new_sentence)
-table = str.maketrans('', '', punctuation)
-stripped_sentence = [word.lower().translate(table) for word in preprocessed_sentence.split()]
-stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
-tagged = pos_tag(word_tokenize(stripped_sentence))
-
-print(tagged)
-
-tagged = [i[1] for i in tagged]
-tagged
-type_tagged = [type(i) for i in tagged]
-type_tagged
-tagged = [get_wordnet_pos(tag) for tag in tagged]
-tagged
-lem_word_list = [lem.lemmatize(word, tagged[i]) for i, word in enumerate(stripped_sentence.split(" "))]
-lem_word_list
-stripped_sentence.split(" ")
-
 ## Removing Punctuation, Preprocessing, Lemmatizing and Tokenizing Tweets
+def sent_preprocess(tweet):
+    # Preprocessing Text
+    tweet = preprocess(tweet)
+    # Removing Punctuation
+    table =str.maketrans('', '', punctuation)
+    stripped_sentence = [word.lower().translate(table) for word in tweet.split()]
+    stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
+    return stripped_sentence
+
 def lem_tokenize(tweet):
     # Preprocessing Text
     tweet = preprocess(tweet)
@@ -146,59 +134,43 @@ sample_sentence = "Playing is a sport that I played since the beginning of the w
 
 lem_tokenize(sample_sentence)
 snow_tokenize(sample_sentence)
-
+sent_preprocess(sample_sentence)
 ## Filtering Data Frame for Happy and Sad Sentiments Only
 new_df = df[(df['sentiment'].str.contains('happiness')) | (df['sentiment'].str.contains('sadness'))]
 new_df.columns = ['id', 'sentiment', 'tweet']
 tweet_list = new_df['tweet'].tolist()
 
-snowball_tweets = [snow_tokenize(tweet) for tweet in new_df['tweet'].tolist()]
+snowball_stemmed_tweets = [snow_tokenize(tweet) for tweet in new_df['tweet'].tolist()]
 clean_df = new_df.copy()
 
-clean_df['snowball_stemmed_tweets'] = snowball_tweets
+clean_df['snowball_stemmed_tweets'] = snowball_stemmed_tweets
+
+clean_df['preprocessed_tweets'] = [sent_preprocess(tweet) for tweet in new_df['tweet'].tolist()]
 
 clean_df.head()
 
+# Getting Sentiment Scores for Both Preprocessed Sentence Tweets and Snowball Stemmed Tweets
+analyzer = SentimentIntensityAnalyzer()
 
+sent_preproc_scores = [analyzer.polarity_scores(tweet) for tweet in clean_df['preprocessed_tweets'].tolist()]
 
+snowball_stemmed_scores = [analyzer.polarity_scores(tweet) for tweet in clean_df['snowball_stemmed_tweets'].tolist()]
 
+sent_preproc_neg = [score['neg'] for score in sent_preproc_scores]
+sent_preproc_neu = [score['neu'] for score in sent_preproc_scores]
+sent_preproc_pos = [score['pos'] for score in sent_preproc_scores]
 
+snowball_neg = [score['neg'] for score in snowball_stemmed_scores]
+snowball_neu = [score['neu'] for score in snowball_stemmed_scores]
+snowball_pos = [score['pos'] for score in snowball_stemmed_scores]
 
+clean_df['sent_negative'] = sent_preproc_neg
+clean_df['sent_neutral'] = sent_preproc_neu
+clean_df['sent_positive'] = sent_preproc_pos
+clean_df['snowball_negative'] = snowball_neg
+clean_df['snowball_neutral'] = snowball_neu
+clean_df['snowball_pos'] = snowball_pos
 
-
-
-
-
-# Leaving the below code for Lemmatizing Purposes in the Future
-
-# Function to remove mystery cases where wordnet POS tag and stripped sentence lengths don't match
-
-def mystery_cases(tweet_list: list) -> list:
-    # Empty List to Store All the Mystery Cases
-    mys_cases = []
-    # Taking Each Tweet and Comparing The Lengths of Their WordNet POS Tags and Processed Sentence Lengths
-    for i,tweet in enumerate(tweet_list):
-        table = str.maketrans('', '', punctuation)
-        stripped_tweet = [word.lower().translate(table) for word in tweet.split()]
-        stripped_tweet = " ".join([word for word in stripped_tweet if word not in stop_words])
-        tagged = pos_tag(word_tokenize(stripped_tweet))
-        tagged = [i[1] for i in tagged]
-        if len(tagged) != len(stripped_tweet.split()):
-            mys_cases.append((i, tweet))
-    return mys_cases
-
-# Storing the mystery cases in a list and removing them from the data frame
-mys_cases = mystery_cases(tweet_list)
-type(mys_cases)
-len(mys_cases)
-mys_cases
-new_df.shape[0] - len(mys_cases)
-mys_indices = [i[0] for i in mys_cases]
-clean_df = new_df.copy()
-clean_df.dropna(inplace=True)
-clean_df.shape
-clean_df['sentiment'].value_counts()
-
-mystery_cases = clean_df.iloc[mys_indices]
-final_df = clean_df[clean_df['id'].isin(mystery_cases['id']) == False]
-final_df.shape
+clean_df.head()
+csv_path = getcwd() + "/panda_sentiment_project/data"
+clean_df.to_csv(f"{csv_path}/happy_sad_sentiment_data.csv", index=False)
