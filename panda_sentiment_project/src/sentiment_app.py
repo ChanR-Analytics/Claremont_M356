@@ -76,4 +76,6 @@ data_path = getcwd() + "/panda_sentiment_project/data/happy_sad_sentiment_data.c
 df = pd.read_csv(data_path)
 st.write("## Section 1: Exploring the Data")
 img_path = getcwd() + "/panda_sentiment_project/data_viz"
-st.image(f"{img_path}/{listdir(img_path)[0]}") 
+st.image(f"{img_path}/{listdir(img_path)[0]}")
+st.write(df['sentiment'].value_counts())
+st.write(df.describe())
