@@ -7,8 +7,10 @@ import streamlit as st
 import warnings
 import re
 import nltk
-from nltk.stem.porter import *
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as VS
+from nltk.tokenize import word_tokenize
+from nltk.stem import SnowballStemmer
+from string import punctuation
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, matthews_corrcoef
@@ -17,10 +19,6 @@ stopwords = nltk.corpus.stopwords.words('english')
 
 other_exclusions = ["#ff", "ff", "rt"]
 stopwords.extend(other_exclusions)
-
-stemmer = PorterStemmer()
-
-sentiment_analyzer = VS()
 
 def preprocess(text_string):
     """
@@ -41,27 +39,41 @@ def preprocess(text_string):
     #parsed_text = parsed_text.code("utf-8", errors='ignore')
     return parsed_text
 
-def tokenize(tweet):
-    """Removes punctuation & excess whitespace, sets to lowercase,
-    and stems tweets. Returns a list of stemmed tokens."""
-    tweet = " ".join(re.split("[^a-zA-Z]*", tweet.lower())).strip()
-    #tokens = re.split("[^a-zA-Z]*", tweet.lower())
-    tokens = [stemmer.stem(t) for t in tweet.split()]
-    return tokens
+## Establishing Snowball Stemmer
+snowball = SnowballStemmer('english')
 
-def basic_tokenize(tweet):
-    """Same as tokenize but without the stemming"""
-    tweet = " ".join(re.split("[^a-zA-Z.,!?]*", tweet.lower())).strip()
-    return tweet.split()
+## Removing Punctuation, Preprocessing, Lemmatizing and Tokenizing Tweets
+def sent_preprocess(tweet):
+    # Preprocessing Text
+    tweet = preprocess(tweet)
+    # Removing Punctuation
+    table =str.maketrans('', '', punctuation)
+    stripped_sentence = [word.lower().translate(table) for word in tweet.split()]
+    stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
+    return stripped_sentence
+
+def snow_tokenize(tweet):
+    # Preprocessing Text
+    tweet = preprocess(tweet)
+    # Removing punctuation
+    table = str.maketrans('', '', punctuation)
+    stripped_sentence = [word.lower().translate(table) for word in tweet.split()]
+    stripped_sentence = " ".join([word for word in stripped_sentence if word not in stop_words])
+    # Tokenizing the Words in the Sentence
+    tokenized = word_tokenize(stripped_sentence)
+    # Stemming Each Word in the Sentence
+    stemmed_words = [snowball.stem(word) for word in tokenized]
+    return " ".join(stemmed_words)
+
+
+# Getting Sentiment Scores for Both Preprocessed Sentence Tweets and Snowball Stemmed Tweets
+analyzer = SentimentIntensityAnalyzer()
 
 
 # Creating the First Part of the App
 st.write("# ChanR Analytics Presents: Panda Sentiment Analysis")
-
-df = pd.read_csv("https://query.data.world/s/33zqxxshjwehd5xoktqpxyiuyqzedm")
-df.drop("author", axis=1, inplace=True)
-st.write(df.head())
-
-st.write(f"## Original Tweet: \n ```{df['content'].tolist()[0]}```")
-st.write(f"## Preprocessed Tweet: \n ```{preprocess(df['content'].tolist()[0])}```")
-st.write(f"## Tokenized Tweet: \n ```{tokenize(preprocess(df['content'].tolist()[0]))}```")
+data_path = getcwd() + "/panda_sentiment_project/data/happy_sad_sentiment_data.csv"
+df = pd.read_csv(data_path)
+st.write("## Section 1: Exploring the Data")
+img_path = getcwd() + "/panda_sentiment_project/data_viz"
+st.image(f"{img_path}/{listdir(img_path)[0]}") 
