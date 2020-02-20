@@ -78,9 +78,9 @@ st.write("## Section 1: Exploring the Data")
 img_path = getcwd() + "/panda_sentiment_project/data_viz"
 st.image(f"{img_path}/{listdir(img_path)[0]}")
 st.write(df['sentiment'].value_counts())
-st.write(df.describe())
+st.write(df.head())
 
 # Machine Learning Component
 
 
-# Wrapping Images to Predictions 
+# Wrapping Images to Predictions
