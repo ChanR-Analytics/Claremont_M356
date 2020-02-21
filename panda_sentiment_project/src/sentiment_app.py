@@ -11,7 +11,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import SnowballStemmer
 from string import punctuation
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, matthews_corrcoef
 
@@ -81,6 +81,16 @@ st.write(df['sentiment'].value_counts())
 st.write(df.head())
 
 # Machine Learning Component
+df.head()
+X = df[['sent_negative', 'sent_neutral', 'sent_positive', 'snowball_negative', 'snowball_neutral', 'snowball_pos']]
+y = df['sentiment']
+y.replace('sadness', 0, inplace=True)
+y.replace('happiness', 1, inplace=True)
 
+X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+
+xgb = XGBClassifier()
+eval_set = [(X_test, Y_test)]
+xgb.fit(X_train, Y_train, early_stopping_rounds=10, eval_metric="logloss", eval_set=eval_set, verbose=True)
 
 # Wrapping Images to Predictions
