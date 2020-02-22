@@ -11,14 +11,14 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import SnowballStemmer
 from string import punctuation
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, matthews_corrcoef
 
-stopwords = nltk.corpus.stopwords.words('english')
+stop_words = nltk.corpus.stopwords.words('english')
 
 other_exclusions = ["#ff", "ff", "rt"]
-stopwords.extend(other_exclusions)
+stop_words.extend(other_exclusions)
 
 def preprocess(text_string):
     """
@@ -81,16 +81,42 @@ st.write(df['sentiment'].value_counts())
 st.write(df.head())
 
 # Machine Learning Component
-df.head()
 X = df[['sent_negative', 'sent_neutral', 'sent_positive', 'snowball_negative', 'snowball_neutral', 'snowball_pos']]
 y = df['sentiment']
-y.replace('sadness', 0, inplace=True)
-y.replace('happiness', 1, inplace=True)
-
 X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, stratify=y)
 
-xgb = XGBClassifier()
-eval_set = [(X_test, Y_test)]
-xgb.fit(X_train, Y_train, early_stopping_rounds=10, eval_metric="logloss", eval_set=eval_set, verbose=True)
-
+lr = LogisticRegression(solver='saga', class_weight='balanced', penalty='elasticnet', l1_ratio=0.25)
+lr.fit(X_train, Y_train)
+Y_pred = lr.predict(X_test)
+st.write(print(classification_report(Y_test, Y_pred)))
+st.write(f"{matthews_corrcoef(Y_test, Y_pred)}")
 # Wrapping Images to Predictions
+img_path = getcwd() + "/panda_sentiment_project/emojis"
+listdir(img_path)
+
+user_input = st.text_input("Type in some text: ")
+
+pred_sent_token = sent_preprocess(user_input)
+pred_snow_token = snow_tokenize(user_input)
+
+pred_sent_polarity = analyzer.polarity_scores(pred_sent_token)
+pred_snow_polarity = analyzer.polarity_scores(pred_snow_token)
+
+pred_sent_neg = pred_sent_polarity['neg']
+pred_sent_neu = pred_sent_polarity['neu']
+pred_sent_pos = pred_sent_polarity['pos']
+
+pred_snow_neg = pred_snow_polarity['neg']
+pred_snow_neu = pred_snow_polarity['neu']
+pred_snow_pos = pred_snow_polarity['pos']
+
+pred = np.array([pred_sent_neg, pred_sent_neu, pred_sent_pos, pred_snow_neg, pred_snow_neu, pred_snow_pos]).reshape(1,6)
+
+new_pred = lr.predict(pred)
+
+
+
+if new_pred == 0:
+    st.image(f"{img_path}/exicted.png")
+else:
+    st.image(f"{img_path}/sob.png")
